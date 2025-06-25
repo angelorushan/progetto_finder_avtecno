@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Accesso Riservato</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* 🎨 PERSONALIZZA: Cambia colore di sfondo */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            /* 🎨 PERSONALIZZA: Dimensioni e aspetto del container */
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            /* 🎨 PERSONALIZZA: Logo o icona */
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+        }
+
+        h1 {
+            /* 🎨 PERSONALIZZA: Titolo */
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            /* 🎨 PERSONALIZZA: Sottotitolo */
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            /* 🎨 PERSONALIZZA: Stile degli input */
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .login-btn {
+            /* 🎨 PERSONALIZZA: Pulsante di login */
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+            border-left: 4px solid #c33;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #363;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+            border-left: 4px solid #363;
+        }
+
+        /* 🎨 PERSONALIZZA: Stili responsivi */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- 🎨 PERSONALIZZA: Cambia icona nel logo -->
+        <div class="logo">🔐</div>
+        
+        <!-- 🎨 PERSONALIZZA: Cambia titolo e sottotitolo -->
+        <h1>Benvenuto</h1>
+        <p class="subtitle">Inserisci le tue credenziali per accedere</p>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Nome Utente</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="login-btn">Accedi</button>
+            
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+        </form>
+    </div>
+
+    <script>
+        // 🔧 CONFIGURAZIONE: Cambia username e password qui
+        const VALID_USERNAME = "admin";
+        const VALID_PASSWORD = "password123";
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+            
+            // Nascondi messaggi precedenti
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            
+            // Verifica credenziali
+            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+                // ✅ LOGIN RIUSCITO
+                successMsg.textContent = 'Login effettuato con successo! Reindirizzamento...';
+                successMsg.style.display = 'block';
+                
+                // 🔗 COLLEGAMENTO ALLA PAGINA AVTECNO PRODUCT FINDER
+                setTimeout(function() {
+                    // Reindirizza alla versione mock di Avtecno Product Finder
+                    window.location.href = 'index.html';
+                    
+                    // ALTRE OPZIONI DISPONIBILI:
+                    // Versione originale (richiede server): 'index.html'
+                    // Se la pagina è in una sottocartella: 'pages/index.html'
+                    // Se vuoi aprire in nuova finestra: window.open('index.html', '_blank');
+                }, 1500);
+                
+            } else {
+                // ❌ LOGIN FALLITO
+                errorMsg.textContent = 'Nome utente o password non corretti!';
+                errorMsg.style.display = 'block';
+                
+                // Scuoti il form per feedback visivo
+                document.querySelector('.login-container').style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    document.querySelector('.login-container').style.animation = 'slideUp 0.6s ease-out';
+                }, 500);
+            }
+        });
+
+        // Animazione shake per errore
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<title>🔍 Avtecno Product Finder</title>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+min-height: 100vh;
+padding: 20px;
+}
+
+.main-container {
+max-width: 1400px;
+margin: 0 auto;
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(10px);
+border-radius: 20px;
+box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+overflow: hidden;
+}
+
+.header {
+background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+padding: 30px;
+text-align: center;
+color: white;
+}
+
+.header h1 {
+font-size: 2.5rem;
+margin-bottom: 10px;
+text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.header p {
+font-size: 1.1rem;
+opacity: 0.9;
+}
+
+.search-section {
+padding: 40px;
+text-align: center;
+background: white;
+}
+
+.search-box {
+display: inline-flex;
+align-items: center;
+background: white;
+border-radius: 50px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+padding: 8px;
+transition: all 0.3s ease;
+border: 2px solid transparent;
+}
+
+.search-box:focus-within {
+transform: translateY(-2px);
+box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+border-color: #4facfe;
+}
+
+.search-box input {
+border: none;
+outline: none;
+padding: 15px 25px;
+font-size: 16px;
+width: 350px;
+background: transparent;
+}
+
+.search-box button {
+background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+color: white;
+border: none;
+padding: 15px 30px;
+border-radius: 50px;
+font-size: 16px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.search-box button:hover {
+transform: scale(1.05);
+box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+}
+
+.product-info {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+padding: 30px;
+margin: 30px;
+border-radius: 15px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.product-info h2 {
+font-size: 1.8rem;
+margin-bottom: 15px;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.product-details {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+gap: 15px;
+margin-top: 20px;
+}
+
+.product-detail {
+background: rgba(255,255,255,0.1);
+padding: 15px;
+border-radius: 10px;
+backdrop-filter: blur(10px);
+}
+
+.compatibility-container {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+gap: 30px;
+margin: 30px;
+}
+
+.compatibility-section {
+background: white;
+border-radius: 15px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+overflow: hidden;
+transition: all 0.3s ease;
+}
+
+.compatibility-section:hover {
+transform: translateY(-5px);
+box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.section-header {
+background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+padding: 20px;
+color: #333;
+}
+
+.section-header.profili {
+background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.section-header.dimmer {
+background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.section-header.alimentatori {
+background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+}
+
+.section-header h2 {
+font-size: 1.4rem;
+margin-bottom: 5px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+.section-header .count {
+background: rgba(255,255,255,0.7);
+padding: 5px 12px;
+border-radius: 20px;
+font-size: 0.9rem;
+font-weight: bold;
+}
+
+.compatibility-list {
+padding: 0;
+max-height: 300px;
+overflow: hidden;
+transition: max-height 0.5s ease;
+}
+
+.compatibility-list.expanded {
+max-height: none;
+overflow: visible;
+}
+
+.compatibility-item {
+background: white;
+margin: 0;
+padding: 20px;
+border-bottom: 1px solid #f0f0f0;
+transition: all 0.3s ease;
+cursor: pointer;
+}
+
+.compatibility-item:hover {
+background: #f8f9ff;
+transform: translateX(5px);
+border-left: 4px solid #4facfe;
+}
+
+.compatibility-item:last-child {
+border-bottom: none;
+}
+
+.compatibility-item .basic-details span {
+display: inline-block;
+margin-right: 15px;
+}
+
+.item-code {
+font-size: 1.1rem;
+font-weight: bold;
+color: #333;
+margin-bottom: 8px;
+flex: 1;
+margin-right: 10px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.item-details {
+color: #666;
+font-size: 0.9rem;
+line-height: 1.4;
+}
+
+.item-details span {
+display: block;
+margin-bottom: 3px;
+}
+
+.show-more-btn {
+background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+color: white;
+border: none;
+padding: 15px 30px;
+width: 100%;
+cursor: pointer;
+font-size: 14px;
+font-weight: 600;
+transition: all 0.3s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+}
+
+.show-more-btn:hover {
+background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+transform: scale(1.02);
+}
+
+.no-results {
+text-align: center;
+padding: 40px;
+color: #999;
+font-style: italic;
+}
+
+.no-results::before {
+content: "😔";
+display: block;
+font-size: 3rem;
+margin-bottom: 15px;
+}
+
+.error {
+background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+color: white;
+padding: 20px;
+border-radius: 15px;
+margin: 30px;
+text-align: center;
+box-shadow: 0 10px 30px rgba(255,107,107,0.3);
+}
+
+.loading {
+text-align: center;
+padding: 60px;
+color: #666;
+}
+
+.loading::before {
+content: "🔄";
+display: block;
+font-size: 3rem;
+margin-bottom: 15px;
+animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+from { transform: rotate(0deg); }
+to { transform: rotate(360deg); }
+}
+
+.debug-info {
+background: rgba(255, 243, 205, 0.9);
+color: #856404;
+padding: 15px;
+border-radius: 10px;
+margin: 20px 30px;
+font-size: 12px;
+border-left: 4px solid #ffc107;
+}
+
+.fade-gradient {
+position: relative;
+}
+
+.fade-gradient::after {
+content: '';
+position: absolute;
+bottom: 0;
+left: 0;
+right: 0;
+height: 50px;
+background: linear-gradient(transparent, white);
+pointer-events: none;
+}
+
+.fade-gradient.expanded::after {
+display: none;
+}
+
+.scroll-to-top {
+position: fixed;
+bottom: 20px;
+right: 20px;
+background: linear-gradient(135deg, #f4a460 0%, #00f2fe 100%);
+color: white;
+width: 50px;
+height: 50px;
+border-radius: 50%;
+display: none;
+justify-content: center;
+align-items: center;
+cursor: pointer;
+box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+border: none;
+font-size: 24px;
+transition: all 0.3s ease;
+z-index: 1000;
+}
+
+.scroll-to-top:hover {
+transform: translateY(-5px);
+box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 768px) {
+.main-container {
+margin: 10px;
+border-radius: 15px;
+}
+
+.search-box {
+flex-direction: column;
+width: 100%;
+border-radius: 15px;
+}
+
+.search-box input {
+width: 100%;
+text-align: center;
+}
+
+.search-box button {
+width: 100%;
+justify-content: center;
+border-radius: 10px;
+margin-top: 10px;
+}
+
+.compatibility-container {
+grid-template-columns: 1fr;
+margin: 20px;
+gap: 20px;
+}
+
+.compatibility-item {
+padding: 15px;
+}
+
+.item-header {
+margin-bottom: 5px;
+}
+
+.item-code {
+font-size: 1rem;
+}
+}
+
+.item-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 10px;
+flex-wrap: nowrap;
+}
+
+.toggle-details-btn {
+background: none;
+border: none;
+color: #4facfe;
+cursor: pointer;
+font-size: 1.2rem;
+padding: 5px;
+border-radius: 50%;
+width: 30px;
+height: 30px;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all 0.3s ease;
+}
+
+.toggle-details-btn:hover {
+background: rgba(79, 172, 254, 0.1);
+}
+
+.extended-details {
+margin-top: 10px;
+padding-top: 10px;
+border-top: 1px solid #eee;
+}
+
+.extended-details span {
+display: block;
+margin-bottom: 5px;
+font-size: 0.9rem;
+color: #666;
+}
+
+.product-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.quantity-input {
+display: flex;
+align-items: center;
+gap: 10px;
+background: rgba(255,255,255,0.2);
+padding: 10px;
+border-radius: 10px;
+}
+
+.quantity-input input {
+width: 80px;
+padding: 8px;
+border: none;
+border-radius: 5px;
+background: white;
+text-align: center;
+font-size: 1rem;
+color: #333;
+}
+
+.quantity-input label {
+color: white;
+font-size: 0.9rem;
+}
+
+/* NUOVI STILI PER ALIMENTATORI */
+.alimentatori-calculator {
+background: rgba(255,255,255,0.2);
+padding: 15px;
+border-radius: 10px;
+margin-top: 15px;
+}
+
+.alimentatori-calculator h3 {
+color: white;
+margin-bottom: 10px;
+font-size: 1.1rem;
+}
+
+.calc-input-group {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 10px;
+}
+
+.calc-input-group input {
+padding: 8px 12px;
+border: none;
+border-radius: 5px;
+background: white;
+width: 100px;
+text-align: center;
+}
+
+.calc-btn {
+background: rgba(255,255,255,0.3);
+color: white;
+border: 1px solid rgba(255,255,255,0.5);
+padding: 8px 16px;
+border-radius: 5px;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+
+.calc-btn:hover {
+background: rgba(255,255,255,0.4);
+}
+
+.calc-results {
+background: rgba(255,255,255,0.1);
+padding: 10px;
+border-radius: 5px;
+margin-top: 10px;
+font-size: 0.9rem;
+}
+
+.calc-results.hidden {
+display: none;
+}
+
+.highlight-success {
+background: rgba(46, 204, 113, 0.2) !important;
+border-left: 4px solid #2ecc71 !important;
+}
+
+.highlight-warning {
+background: rgba(241, 196, 15, 0.2) !important;
+border-left: 4px solid #f1c40f !important;
+}
+
+.alimentatore-info {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 8px;
+}
+
+.alimentatore-details {
+font-size: 0.85rem;
+opacity: 0.9;
+}
+
+.utilizzo-badge {
+display: inline-block;
+padding: 2px 8px;
+border-radius: 12px;
+font-size: 0.75rem;
+font-weight: bold;
+margin-left: 10px;
+}
+
+.utilizzo-optimal {
+background: rgba(46, 204, 113, 0.8);
+color: white;
+}
+
+.utilizzo-good {
+background: rgba(52, 152, 219, 0.8);
+color: white;
+}
+
+.utilizzo-high {
+background: rgba(241, 196, 15, 0.8);
+color: #333;
+}
+</style>
+</head>
+<body>
+<div class="main-container">
+<div class="header">
+<h1>🔍 Avtecno Product Finder</h1>
+<p>Trova la compatibilità perfetta per i tuoi prodotti LED</p>
+</div>
+
+<div class="search-section">
+<div class="search-box">
+<input
+type="text"
+id="codice"
+placeholder="Inserisci codice prodotto (es. ST001, PR015, DIM200...)"
+onkeypress="if(event.key==='Enter') cercaCodice()"
+/>
+<button onclick="cercaCodice()">
+<span>🔍</span>
+Cerca
+</button>
+</div>
+</div>
+
+<div id="results"></div>
+
+<button class="scroll-to-top" onclick="scrollToTop()">
+↑
+</button>
+</div>
+
+<script>
+  async function cercaCodice() {
+    const codice = document.getElementById("codice").value.trim();
+    if (!codice) return;
+
+    const res = await fetch(`/api/cerca/${codice}`);
+    const data = await res.json();
+
+    let html = "";
+
+    if (data.error) {
+      html = `<p style="color:red;">${data.error}</p>`;
+    }
+
+    // --- GESTIONE STRIP LED ---
+    if (data.tipo === 'stripled' && data.strip) {
+      const strip = data.strip;
+      const wattMetro = parseFloat(strip["Potenza"]?.replace("W/m", "").trim()) || 0;
+      const volt = parseFloat(strip["Input Volt"]?.replace("V", "").trim()) || 0;
+
+      html += `<h2>Strip LED: ${strip.Codice}</h2>`;
+      html += `<pre>${JSON.stringify(strip, null, 2)}</pre>`;
+
+      html += `<h3>Profili compatibili</h3><ul>`;
+      data.profili_compatibili.forEach(p => {
+        html += `<li>${p.Codice}</li>`;
+      });
+      html += `</ul>`;
+
+      html += `<h3>Dimmer compatibili</h3><ul>`;
+      data.dimmer_compatibili.forEach(d => {
+        html += `<li>${d.Codice}</li>`;
+      });
+      html += `</ul>`;
+
+      html += `<h3>Alimentatori</h3>`;
+      if (data.calcolo_alimentatori.possibile) {
+        html += `
+          <p>${data.calcolo_alimentatori.info}</p>
+          <label for="metri_input">Metri di strip:</label>
+          <input id="metri_input" type="number" step="0.1" placeholder="Es. 2.5">
+          <button onclick="calcolaAlimentatori(${wattMetro}, ${volt})">Calcola</button>
+          <div id="risultati_alimentatori"></div>
+        `;
+      } else {
+        html += `<p style="color:gray;">${data.calcolo_alimentatori.info}</p>`;
+      }
+    }
+
+    // --- GESTIONE PROFILO ---
+    if (data.tipo === 'profilo' && data.profilo) {
+      const profilo = data.profilo;
+      html += `<h2>Profilo: ${profilo.Codice}</h2>`;
+      html += `<pre>${JSON.stringify(profilo.dettagli_completi, null, 2)}</pre>`;
+
+      html += `<h3>Strip compatibili</h3><ul>`;
+      data.strip_compatibili.forEach(s => {
+        html += `<li>${s.Codice}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    // --- GESTIONE DIMMER ---
+    if (data.tipo === 'dimmer' && data.dimmer) {
+      const dimmer = data.dimmer;
+      html += `<h2>Dimmer: ${dimmer.Codice}</h2>`;
+      html += `<pre>${JSON.stringify(dimmer, null, 2)}</pre>`;
+
+      html += `<h3>Strip compatibili</h3><ul>`;
+      data.strip_compatibili.forEach(s => {
+        html += `<li>${s.Codice}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    // --- GESTIONE ALIMENTATORE ---
+    if (data.tipo === 'alimentatore' && data.alimentatore) {
+      const alim = data.alimentatore;
+      html += `<h2>Alimentatore: ${alim.codice}</h2>`;
+      html += `<pre>${JSON.stringify(alim, null, 2)}</pre>`;
+
+      html += `<h3>Strip compatibili</h3><ul>`;
+      data.strip_compatibili.forEach(s => {
+        html += `<li>${s.Codice} – max ${s.metri_max_supportati} m (${s.ampere_per_metro} A/m)</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    // --- DEBUG ---
+    if (data.debug) {
+      html += `<hr><h3>Debug</h3><pre>${JSON.stringify(data.debug, null, 2)}</pre>`;
+    }
+
+    document.getElementById("results").innerHTML = html;
+
+  }
+
+  function calcolaAlimentatori(wattMetro, volt) {
+    const metri = parseFloat(document.getElementById("metri_input").value);
+    if (isNaN(metri) || metri <= 0) {
+      document.getElementById("risultati_alimentatori").innerHTML = `<p style="color:red;">Inserisci un valore valido di metri</p>`;
+      return;
+    }
+
+    const potenzaTot = wattMetro * metri;
+    const correnteTot = potenzaTot / volt;
+
+    document.getElementById("risultati_alimentatori").innerHTML = `
+      <p>Potenza totale: <strong>${potenzaTot.toFixed(2)} W</strong></p>
+      <p>Corrente totale: <strong>${correnteTot.toFixed(2)} A</strong></p>
+      <p><em>Ora cerca un alimentatore con tensione ${volt}V e almeno ${correnteTot.toFixed(2)}A di uscita</em></p>
+    `;
+  }
+</script>
