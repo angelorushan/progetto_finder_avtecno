@@ -44,11 +44,11 @@ def estrai_temperatura_colore(item):
         return min(temperature_trovate)
     
     # Fallback: cerca parole chiave comuni
-    if any(keyword in testo for keyword in ['WARM', 'CALDO', '2700', '2800', '2900']):
+    if any(keyword in testo for keyword in [ '2700', '2800', '2900']):
         return 2700  # Bianco caldo tipico
-    elif any(keyword in testo for keyword in ['NATURAL', 'NATURALE', '4000']):
+    elif any(keyword in testo for keyword in [ '4000']):
         return 4000  # Bianco naturale
-    elif any(keyword in testo for keyword in ['COOL', 'FREDDO', '6000', '6500']):
+    elif any(keyword in testo for keyword in [ '6000', '6500']):
         return 6000  # Bianco freddo
     
     return None
