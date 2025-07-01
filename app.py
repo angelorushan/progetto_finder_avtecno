@@ -639,7 +639,6 @@ def ricerca_alimentatore(codice, alimentatori_data, strip_data):
     )
     
     if not alimentatore:
-        console.log(f"❌ Nessun alimentatore trovato per il codice: {codice}")
         return {
             "error": "Alimentatore non trovato",
             "codice": codice
@@ -687,9 +686,6 @@ def ricerca_alimentatore(codice, alimentatori_data, strip_data):
         }
     }
     
-    # Log di successo
-    console.log(f"✅ Alimentatore trovato: {codice} - {len(strip_compatibili)} strip compatibili")
-    
     return risposta, 200
 
 
@@ -722,7 +718,6 @@ def get_prodotto(codice):
         }), 404
         
     except Exception as e:
-        console.log(f"❌ Errore interno: {str(e)}")
         return jsonify({
             "error": "Errore interno del server",
             "details": str(e) if app.debug else None
@@ -745,7 +740,6 @@ def estrai_potenza_strip(potenza_str):
     
     try:
         # Rimuove "W/m" e altri caratteri non numerici tranne punto e virgola
-        import re
         numero = re.search(r'(\d+\.?\d*)', str(potenza_str))
         if numero:
             return float(numero.group(1))
@@ -770,7 +764,6 @@ def estrai_voltaggio_strip(voltaggio_str):
     
     try:
         # Rimuove "V", "DC", "AC" e altri caratteri non numerici
-        import re
         numero = re.search(r'(\d+\.?\d*)', str(voltaggio_str))
         if numero:
             return float(numero.group(1))
@@ -780,28 +773,3 @@ def estrai_voltaggio_strip(voltaggio_str):
     return None
 
 
-# Simulazione della funzione console.log
-def console_log(message):
-    """
-    Funzione per logging compatibile con Flask.
-    """
-    import logging
-    logging.info(message)
-    print(message)  # Per debug locale
-
-
-# Alias per compatibilità
-console = type('Console', (), {'log': console_log})()
-
-
-if __name__ == "__main__":
-    # Configurazione Flask di base
-    from flask import Flask, jsonify, request
-    
-    app = Flask(__name__)
-    app.config['DEBUG'] = True
-    
-    # Dati di esempio (sostituire con i tuoi dati reali)
-
-    
-    app.run(debug=True, host='0.0.0.0', port=5000)
