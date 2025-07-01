@@ -771,11 +771,8 @@ def estrai_voltaggio_strip(voltaggio_str):
         pass
     
     return None
-    if __name__ == "__main__":
-
-
-    
-    app = Flask(__name__)
-    app.config['DEBUG'] = True
+    if __name__ == "__main__": 
+        app = Flask(__name__)
+        app.config['DEBUG'] = True
 
 
