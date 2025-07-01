@@ -1,723 +1,1207 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8" />
-<title>🔍 Avtecno Product Finder</title>
-<style>
-* {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Avtecno Product Finder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body {
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-min-height: 100vh;
-padding: 20px;
-}
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --accent-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --error-color: #e74c3c;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --background-light: rgba(255, 255, 255, 0.95);
+            --shadow-light: 0 10px 30px rgba(0,0,0,0.1);
+            --shadow-medium: 0 15px 40px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 20px 60px rgba(0,0,0,0.2);
+            --border-radius: 20px;
+            --border-radius-small: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-.main-container {
-max-width: 1400px;
-margin: 0 auto;
-background: rgba(255, 255, 255, 0.95);
-backdrop-filter: blur(10px);
-border-radius: 20px;
-box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-overflow: hidden;
-}
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
 
-.header {
-background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-padding: 30px;
-text-align: center;
-color: white;
-}
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--background-light);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-heavy);
+            overflow: hidden;
+            position: relative;
+        }
 
-.header h1 {
-font-size: 2.5rem;
-margin-bottom: 10px;
-text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
+        .header {
+            background: var(--secondary-gradient);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
 
-.header p {
-font-size: 1.1rem;
-opacity: 0.9;
-}
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 20s ease-in-out infinite;
+        }
 
-.search-section {
-padding: 40px;
-text-align: center;
-background: white;
-}
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
 
-.search-box {
-display: inline-flex;
-align-items: center;
-background: white;
-border-radius: 50px;
-box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-padding: 8px;
-transition: all 0.3s ease;
-border: 2px solid transparent;
-}
+        .header h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
 
-.search-box:focus-within {
-transform: translateY(-2px);
-box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-border-color: #4facfe;
-}
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
 
-.search-box input {
-border: none;
-outline: none;
-padding: 15px 25px;
-font-size: 16px;
-width: 350px;
-background: transparent;
-}
+        .search-section {
+            padding: 50px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            position: relative;
+            z-index: 2;
+        }
 
-.search-box button {
-background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-color: white;
-border: none;
-padding: 15px 30px;
-border-radius: 50px;
-font-size: 16px;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.3s ease;
-display: flex;
-align-items: center;
-gap: 8px;
-}
+        /* .search-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0f0f0' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+            pointer-events: none;
+          } */
 
-.search-box button:hover {
-transform: scale(1.05);
-box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
-}
 
-.product-info {
-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-color: white;
-padding: 30px;
-margin: 30px;
-border-radius: 15px;
-box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
+        .search-container {
+            position: relative;
+            z-index: 1;
+        }
 
-.product-info h2 {
-font-size: 1.8rem;
-margin-bottom: 15px;
-display: flex;
-align-items: center;
-gap: 10px;
-}
+        .search-box {
+            display: inline-flex;
+            align-items: center;
+            background: white;
+            border-radius: 60px;
+            box-shadow: var(--shadow-medium);
+            padding: 8px;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            position: relative;
+            max-width: 500px;
+            width: 100%;
+            z-index: 2;
+        }
 
-.product-details {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-gap: 15px;
-margin-top: 20px;
-}
+        .search-box:focus-within {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px rgba(79, 172, 254, 0.3);
+            border-color: #4facfe;
+        }
 
-.product-detail {
-background: rgba(255,255,255,0.1);
-padding: 15px;
-border-radius: 10px;
-backdrop-filter: blur(10px);
-}
+        .search-box::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 60px;
+            padding: 2px;
+            background: var(--secondary-gradient);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            opacity: 0;
+            transition: var(--transition);
+             pointer-events: none;
+        }
 
-.compatibility-container {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-gap: 30px;
-margin: 30px;
-}
+        .search-box:focus-within::before {
+            opacity: 1;
+        }
 
-.compatibility-section {
-background: white;
-border-radius: 15px;
-box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-overflow: hidden;
-transition: all 0.3s ease;
-}
+        .search-box input {
+            border: none;
+            outline: none;
+            padding: 18px 25px;
+            font-size: 16px;
+            flex: 1;
+            background: transparent;
+            font-weight: 400;
+            color: var(--text-dark);
+        }
 
-.compatibility-section:hover {
-transform: translateY(-5px);
-box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
+        .search-box input::placeholder {
+            color: var(--text-light);
+            font-weight: 300;
+        }
 
-.section-header {
-background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
-padding: 20px;
-color: #333;
-}
+        .search-box button {
+            background: var(--secondary-gradient);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
 
-.section-header.profili {
-background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-}
+        .search-box button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            opacity: 0;
+            transition: var(--transition);
+        }
 
-.section-header.dimmer {
-background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-}
+        .search-box button:hover::before {
+            opacity: 1;
+        }
 
-.section-header.alimentatori {
-background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-}
+        .search-box button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+        }
 
-.section-header h2 {
-font-size: 1.4rem;
-margin-bottom: 5px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-}
+        .search-box button span {
+            position: relative;
+            z-index: 1;
+        }
 
-.section-header .count {
-background: rgba(255,255,255,0.7);
-padding: 5px 12px;
-border-radius: 20px;
-font-size: 0.9rem;
-font-weight: bold;
-}
+        .results-container {
+            padding: 0 30px 30px;
+        }
 
-.compatibility-list {
-padding: 0;
-max-height: 300px;
-overflow: hidden;
-transition: max-height 0.5s ease;
-}
+        .product-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            margin-bottom: 30px;
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
 
-.compatibility-list.expanded {
-max-height: none;
-overflow: visible;
-}
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
 
-.compatibility-item {
-background: white;
-margin: 0;
-padding: 20px;
-border-bottom: 1px solid #f0f0f0;
-transition: all 0.3s ease;
-cursor: pointer;
-}
+        .product-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
 
-.compatibility-item:hover {
-background: #f8f9ff;
-transform: translateX(5px);
-border-left: 4px solid #4facfe;
-}
+        .product-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translateX(30px) translateY(-30px);
+        }
 
-.compatibility-item:last-child {
-border-bottom: none;
-}
+        .product-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
-.compatibility-item .basic-details span {
-display: inline-block;
-margin-right: 15px;
-}
+        .product-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
 
-.item-code {
-font-size: 1.1rem;
-font-weight: bold;
-color: #333;
-margin-bottom: 8px;
-flex: 1;
-margin-right: 10px;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-}
+        .product-subtitle {
+            opacity: 0.9;
+            font-weight: 400;
+            font-size: 1rem;
+        }
 
-.item-details {
-color: #666;
-font-size: 0.9rem;
-line-height: 1.4;
-}
+        .product-details {
+            padding: 30px;
+        }
 
-.item-details span {
-display: block;
-margin-bottom: 3px;
-}
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
 
-.show-more-btn {
-background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-color: white;
-border: none;
-padding: 15px 30px;
-width: 100%;
-cursor: pointer;
-font-size: 14px;
-font-weight: 600;
-transition: all 0.3s ease;
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 8px;
-}
+        .detail-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 20px;
+            border-radius: var(--border-radius-small);
+            border-left: 4px solid var(--secondary-gradient);
+            transition: var(--transition);
+        }
 
-.show-more-btn:hover {
-background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-transform: scale(1.02);
-}
+        .detail-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-light);
+        }
 
-.no-results {
-text-align: center;
-padding: 40px;
-color: #999;
-font-style: italic;
-}
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-.no-results::before {
-content: "😔";
-display: block;
-font-size: 3rem;
-margin-bottom: 15px;
-}
+        .detail-value {
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
 
-.error {
-background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
-color: white;
-padding: 20px;
-border-radius: 15px;
-margin: 30px;
-text-align: center;
-box-shadow: 0 10px 30px rgba(255,107,107,0.3);
-}
+        .compatibility-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
 
-.loading {
-text-align: center;
-padding: 60px;
-color: #666;
-}
+        .compatibility-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
 
-.loading::before {
-content: "🔄";
-display: block;
-font-size: 3rem;
-margin-bottom: 15px;
-animation: spin 2s linear infinite;
-}
+        .compatibility-section:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+        }
 
-@keyframes spin {
-from { transform: rotate(0deg); }
-to { transform: rotate(360deg); }
-}
+        .section-header {
+            padding: 25px;
+            background: var(--accent-gradient);
+            color: var(--text-dark);
+            position: relative;
+            overflow: hidden;
+        }
 
-.debug-info {
-background: rgba(255, 243, 205, 0.9);
-color: #856404;
-padding: 15px;
-border-radius: 10px;
-margin: 20px 30px;
-font-size: 12px;
-border-left: 4px solid #ffc107;
-}
+        .section-header.profili {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
 
-.fade-gradient {
-position: relative;
-}
+        .section-header.dimmer {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
 
-.fade-gradient::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-right: 0;
-height: 50px;
-background: linear-gradient(transparent, white);
-pointer-events: none;
-}
+        .section-header.alimentatori {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        }
 
-.fade-gradient.expanded::after {
-display: none;
-}
+        .section-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
 
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1;
+        }
+
+        .item-count {
+            background: rgba(255,255,255,0.9);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .compatibility-list {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,0,0,0.2) transparent;
+        }
+
+        .compatibility-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .compatibility-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .compatibility-list::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+
+        .compatibility-item {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .compatibility-item:hover {
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            transform: translateX(10px);
+            border-left: 4px solid var(--secondary-gradient);
+        }
+
+        .compatibility-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .item-code {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            flex: 1;
+        }
+
+        .expand-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-gradient);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 8px;
+            border-radius: 50%;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .expand-btn:hover {
+            background: rgba(79, 172, 254, 0.1);
+            transform: scale(1.1);
+        }
+
+        .item-details {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .item-details span {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .calculator-section {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: var(--border-radius-small);
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .calculator-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-group label {
+            color: white;
+            font-weight: 500;
+            min-width: 120px;
+        }
+
+        .input-group input {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.9);
+            color: var(--text-dark);
+            font-size: 1rem;
+            font-weight: 500;
+            width: 120px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .calc-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .calc-btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        .calc-results {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .calc-results.hidden {
+            display: none;
+        }
+
+        .result-item {
+            color: white;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 40px;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        .no-results::before {
+            content: "🔍";
+            display: block;
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, var(--error-color), #c0392b);
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 80px 40px;
+            color: var(--text-light);
+        }
+
+        .loading::before {
+            content: "";
+            display: block;
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 20px;
+            border: 4px solid rgba(79, 172, 254, 0.3);
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 .scroll-to-top {
-position: fixed;
-bottom: 20px;
-right: 20px;
-background: linear-gradient(135deg, #f4a460 0%, #00f2fe 100%);
-color: white;
-width: 50px;
-height: 50px;
-border-radius: 50%;
-display: none;
-justify-content: center;
-align-items: center;
-cursor: pointer;
-box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-border: none;
-font-size: 24px;
-transition: all 0.3s ease;
-z-index: 1000;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 10;
+    display: none;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-.scroll-to-top:hover {
-transform: translateY(-5px);
-box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-}
 
+        .scroll-to-top:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        /* Responsive Design */
 @media (max-width: 768px) {
-.main-container {
-margin: 10px;
-border-radius: 15px;
-}
+    body {
+        padding: 10px;
+    }
+    .main-container {
+        border-radius: 15px;
+    }
+    .header {
+        padding: 30px 20px;
+    }
+    .search-section {
+        padding: 30px 20px;
+    }
+    .search-box {
+        display: flex;
+        flex-direction: column;
+        border-radius: 20px;
+        padding: 15px;
+    }
+    .search-box input {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 15px;
+        padding: 15px;
+        border-radius: 12px;
+    }
+    .search-box button {
+        width: 100%;
+        justify-content: center;
+        border-radius: 12px;
+    }
+    .results-container {
+        padding: 20px;
+    }
+    .compatibility-sections {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+    .input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .input-group input {
+        width: 100%;
+    }
 
-.search-box {
-flex-direction: column;
-width: 100%;
-border-radius: 15px;
-}
+  }
 
-.search-box input {
-width: 100%;
-text-align: center;
-}
+            .results-container {
+                padding: 20px;
+                z-index: 20;
+            }
 
-.search-box button {
-width: 100%;
-justify-content: center;
-border-radius: 10px;
-margin-top: 10px;
-}
+            .compatibility-sections {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
 
-.compatibility-container {
-grid-template-columns: 1fr;
-margin: 20px;
-gap: 20px;
-}
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
 
-.compatibility-item {
-padding: 15px;
-}
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
 
-.item-header {
-margin-bottom: 5px;
-}
+            .input-group input {
+                width: 100%;
+            }
 
-.item-code {
-font-size: 1rem;
-}
-}
+        /* Utility Classes */
+        .highlight-success {
+            background: rgba(46, 204, 113, 0.1) !important;
+            border-left: 4px solid var(--success-color) !important;
+        }
 
-.item-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 10px;
-flex-wrap: nowrap;
-}
+        .highlight-warning {
+            background: rgba(243, 156, 18, 0.1) !important;
+            border-left: 4px solid var(--warning-color) !important;
+        }
 
-.toggle-details-btn {
-background: none;
-border: none;
-color: #4facfe;
-cursor: pointer;
-font-size: 1.2rem;
-padding: 5px;
-border-radius: 50%;
-width: 30px;
-height: 30px;
-display: flex;
-align-items: center;
-justify-content: center;
-transition: all 0.3s ease;
-}
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
 
-.toggle-details-btn:hover {
-background: rgba(79, 172, 254, 0.1);
-}
+        .badge-success {
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
 
-.extended-details {
-margin-top: 10px;
-padding-top: 10px;
-border-top: 1px solid #eee;
-}
+        .badge-warning {
+            background: rgba(243, 156, 18, 0.2);
+            color: var(--warning-color);
+        }
 
-.extended-details span {
-display: block;
-margin-bottom: 5px;
-font-size: 0.9rem;
-color: #666;
-}
-
-.product-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 20px;
-}
-
-.quantity-input {
-display: flex;
-align-items: center;
-gap: 10px;
-background: rgba(255,255,255,0.2);
-padding: 10px;
-border-radius: 10px;
-}
-
-.quantity-input input {
-width: 80px;
-padding: 8px;
-border: none;
-border-radius: 5px;
-background: white;
-text-align: center;
-font-size: 1rem;
-color: #333;
-}
-
-.quantity-input label {
-color: white;
-font-size: 0.9rem;
-}
-
-/* NUOVI STILI PER ALIMENTATORI */
-.alimentatori-calculator {
-background: rgba(255,255,255,0.2);
-padding: 15px;
-border-radius: 10px;
-margin-top: 15px;
-}
-
-.alimentatori-calculator h3 {
-color: white;
-margin-bottom: 10px;
-font-size: 1.1rem;
-}
-
-.calc-input-group {
-display: flex;
-align-items: center;
-gap: 10px;
-margin-bottom: 10px;
-}
-
-.calc-input-group input {
-padding: 8px 12px;
-border: none;
-border-radius: 5px;
-background: white;
-width: 100px;
-text-align: center;
-}
-
-.calc-btn {
-background: rgba(255,255,255,0.3);
-color: white;
-border: 1px solid rgba(255,255,255,0.5);
-padding: 8px 16px;
-border-radius: 5px;
-cursor: pointer;
-transition: all 0.3s ease;
-}
-
-.calc-btn:hover {
-background: rgba(255,255,255,0.4);
-}
-
-.calc-results {
-background: rgba(255,255,255,0.1);
-padding: 10px;
-border-radius: 5px;
-margin-top: 10px;
-font-size: 0.9rem;
-}
-
-.calc-results.hidden {
-display: none;
-}
-
-.highlight-success {
-background: rgba(46, 204, 113, 0.2) !important;
-border-left: 4px solid #2ecc71 !important;
-}
-
-.highlight-warning {
-background: rgba(241, 196, 15, 0.2) !important;
-border-left: 4px solid #f1c40f !important;
-}
-
-.alimentatore-info {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 8px;
-}
-
-.alimentatore-details {
-font-size: 0.85rem;
-opacity: 0.9;
-}
-
-.utilizzo-badge {
-display: inline-block;
-padding: 2px 8px;
-border-radius: 12px;
-font-size: 0.75rem;
-font-weight: bold;
-margin-left: 10px;
-}
-
-.utilizzo-optimal {
-background: rgba(46, 204, 113, 0.8);
-color: white;
-}
-
-.utilizzo-good {
-background: rgba(52, 152, 219, 0.8);
-color: white;
-}
-
-.utilizzo-high {
-background: rgba(241, 196, 15, 0.8);
-color: #333;
-}
-</style>
+        .badge-info {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+        }
+    </style>
 </head>
 <body>
-<div class="main-container">
-<div class="header">
-<h1>🔍 Avtecno Product Finder</h1>
-<p>Trova la compatibilità perfetta per i tuoi prodotti LED</p>
-</div>
+    <div class="main-container">
+        <div class="header">
+            <h1>🔍 Avtecno Product Finder</h1>
+            <p>Trova la compatibilità perfetta per i tuoi prodotti LED</p>
+        </div>
 
 <div class="search-section">
-<div class="search-box">
-<input
-type="text"
-id="codice"
-placeholder="Inserisci codice prodotto (es. ST001, PR015, DIM200...)"
-onkeypress="if(event.key==='Enter') cercaCodice()"
-/>
-<button onclick="cercaCodice()">
-<span>🔍</span>
-Cerca
-</button>
+    <div class="search-container">
+        <form class="search-box" onsubmit="cercaCodice(); return false;">
+            <input
+                type="text"
+                id="codice"
+                placeholder="Inserisci codice prodotto (es. ST001, PR015, DIM200...)"
+                autocomplete="off"
+            />
+            <button type="submit">
+                <span>🔍</span>
+                <span>Cerca</span>
+            </button>
+        </form>
+    </div>
 </div>
+<div class="results-container">
+    <div id="results"></div>
 </div>
-
-<div id="results"></div>
-
 <button class="scroll-to-top" onclick="scrollToTop()">
-↑
+    ↑
 </button>
-</div>
+    </div>
+    <script>
+    async function cercaCodice() {
+            const codice = document.getElementById("codice").value.trim();
+            if (!codice) return;
 
-<script>
-  async function cercaCodice() {
-    const codice = document.getElementById("codice").value.trim();
-    if (!codice) return;
+            // Mostra loading
+            document.getElementById("results").innerHTML = '<div class="loading">Ricerca in corso...</div>';
+            
+            try {
+                const res = await fetch('http://localhost:5000/cerca?codice=' + encodeURIComponent(codice));
+                const data = await res.json();
+              console.log("Risposta ricevuta dal backend:", data)
+                let html = "";
 
-    const res = await fetch(`/api/cerca/${codice}`);
-    const data = await res.json();
+                if (data.error) {
+                    html = `<div class="error-message">
+                        <h3>Errore</h3>
+                        <p>${data.error}</p>
+                    </div>`;
+                } else {
+                    html = generateProductHTML(data);
+                }
 
-    let html = "";
+                document.getElementById("results").innerHTML = html;
+                
+                // Mostra il pulsante scroll to top se ci sono risultati
+                if (!data.error) {
+                    document.querySelector('.scroll-to-top').style.display = 'flex';
+                }
 
-    if (data.error) {
-      html = `<p style="color:red;">${data.error}</p>`;
-    }
+            } catch (error) {
+                document.getElementById("results").innerHTML = `<div class="error-message">
+                    <h3>Errore di Connessione</h3>
+                    <p>Impossibile connettersi al server. Verifica che il server sia attivo.</p>
+                </div>`;
+            }
+        }
 
-    // --- GESTIONE STRIP LED ---
-    if (data.tipo === 'stripled' && data.strip) {
-      const strip = data.strip;
-      const wattMetro = parseFloat(strip["Potenza"]?.replace("W/m", "").trim()) || 0;
-      const volt = parseFloat(strip["Input Volt"]?.replace("V", "").trim()) || 0;
+        function generateProductHTML(data) {
+            let html = '';
 
-      html += `<h2>Strip LED: ${strip.Codice}</h2>`;
-      html += `<pre>${JSON.stringify(strip, null, 2)}</pre>`;
+            // --- GESTIONE STRIP LED ---
+            if (data.tipo === 'stripled' && data.strip) {
+                const strip = data.strip;
+                const wattMetro = parseFloat(strip["Potenza"]?.replace("W/m", "").trim()) || 0;
+                const volt = parseFloat(strip["Input Volt"]?.replace("V", "").trim()) || 0;
 
-      html += `<h3>Profili compatibili</h3><ul>`;
-      data.profili_compatibili.forEach(p => {
-        html += `<li>${p.Codice}</li>`;
-      });
-      html += `</ul>`;
+                html += `
+                <div class="product-card">
+                    <div class="product-header">
+                        <div class="product-title">
+                            <div class="product-icon">💡</div>
+                            Strip LED: ${strip.Codice}
+                        </div>
+                        <div class="product-subtitle">Striscia LED professionale</div>
+                    </div>
+                    <div class="product-details">
+                        <div class="details-grid">
+                            ${Object.entries(strip).map(([key, value]) => `
+                                <div class="detail-item">
+                                    <div class="detail-label">${key}</div>
+                                    <div class="detail-value">${value}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        ${data.calcolo_alimentatori.possibile ? `
+                        <div class="calculator-section">
+                            <div class="calculator-title">
+                                ⚡ Calcolatore Alimentatori
+                            </div>
+                            <div class="input-group">
+                                <label for="metri_input">Metri di strip:</label>
+                                <input id="metri_input" type="number" step="0.1" placeholder="Es. 2.5">
+                                <button class="calc-btn" onclick="calcolaAlimentatori(${wattMetro}, ${volt})">
+                                    <span>🔢</span>
+                                    Calcola
+                                </button>
+                            </div>
+                            <div id="risultati_alimentatori" class="calc-results hidden"></div>
+                        </div>
+                        ` : `
+                        <div class="calculator-section">
+                            <p style="color: rgba(255,255,255,0.8);">${data.calcolo_alimentatori.info}</p>
+                        </div>
+                        `}
+                    </div>
+                </div>
+                `;
 
-      html += `<h3>Dimmer compatibili</h3><ul>`;
-      data.dimmer_compatibili.forEach(d => {
-        html += `<li>${d.Codice}</li>`;
-      });
-      html += `</ul>`;
+                // Sezioni di compatibilità
+                html += generateCompatibilitySection('Profili Compatibili', data.profili_compatibili, 'profili', '📏');
+                html += generateCompatibilitySection('Dimmer Compatibili', data.dimmer_compatibili, 'dimmer', '🎛️');
+            }
 
-      html += `<h3>Alimentatori</h3>`;
-      if (data.calcolo_alimentatori.possibile) {
-        html += `
-          <p>${data.calcolo_alimentatori.info}</p>
-          <label for="metri_input">Metri di strip:</label>
-          <input id="metri_input" type="number" step="0.1" placeholder="Es. 2.5">
-          <button onclick="calcolaAlimentatori(${wattMetro}, ${volt})">Calcola</button>
-          <div id="risultati_alimentatori"></div>
-        `;
-      } else {
-        html += `<p style="color:gray;">${data.calcolo_alimentatori.info}</p>`;
-      }
-    }
+            // --- GESTIONE PROFILO ---
+            if (data.tipo === 'profilo' && data.profilo) {
+                const profilo = data.profilo;
+                html += `
+                <div class="product-card">
+                    <div class="product-header">
+                        <div class="product-title">
+                            <div class="product-icon">📏</div>
+                            Profilo: ${profilo.Codice}
+                        </div>
+                        <div class="product-subtitle">Profilo in alluminio per LED</div>
+                    </div>
+                    <div class="product-details">
+                        <div class="details-grid">
+                            ${Object.entries(profilo.dettagli_completi || {}).map(([key, value]) => `
+                                <div class="detail-item">
+                                    <div class="detail-label">${key}</div>
+                                    <div class="detail-value">${value}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                `;
 
-    // --- GESTIONE PROFILO ---
-    if (data.tipo === 'profilo' && data.profilo) {
-      const profilo = data.profilo;
-      html += `<h2>Profilo: ${profilo.Codice}</h2>`;
-      html += `<pre>${JSON.stringify(profilo.dettagli_completi, null, 2)}</pre>`;
+                html += generateCompatibilitySection('Strip Compatibili', data.strip_compatibili, 'strip', '💡');
+            }
 
-      html += `<h3>Strip compatibili</h3><ul>`;
-      data.strip_compatibili.forEach(s => {
-        html += `<li>${s.Codice}</li>`;
-      });
-      html += `</ul>`;
-    }
+            // --- GESTIONE DIMMER ---
+            if (data.tipo === 'dimmer' && data.dimmer) {
+                const dimmer = data.dimmer;
+                html += `
+                <div class="product-card">
+                    <div class="product-header">
+                        <div class="product-title">
+                            <div class="product-icon">🎛️</div>
+                            Dimmer: ${dimmer.Codice}
+                        </div>
+                        <div class="product-subtitle">Regolatore di intensità</div>
+                    </div>
+                    <div class="product-details">
+                        <div class="details-grid">
+                            ${Object.entries(dimmer).map(([key, value]) => `
+                                <div class="detail-item">
+                                    <div class="detail-label">${key}</div>
+                                    <div class="detail-value">${value}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                `;
 
-    // --- GESTIONE DIMMER ---
-    if (data.tipo === 'dimmer' && data.dimmer) {
-      const dimmer = data.dimmer;
-      html += `<h2>Dimmer: ${dimmer.Codice}</h2>`;
-      html += `<pre>${JSON.stringify(dimmer, null, 2)}</pre>`;
+                html += generateCompatibilitySection('Strip Compatibili', data.strip_compatibili, 'strip', '💡');
+            }
 
-      html += `<h3>Strip compatibili</h3><ul>`;
-      data.strip_compatibili.forEach(s => {
-        html += `<li>${s.Codice}</li>`;
-      });
-      html += `</ul>`;
-    }
+            // --- GESTIONE ALIMENTATORE ---
+            if (data.tipo === 'alimentatore' && data.alimentatore) {
+                const alim = data.alimentatore;
+                html += `
+                <div class="product-card">
+                    <div class="product-header">
+                        <div class="product-title">
+                            <div class="product-icon">⚡</div>
+                            Alimentatore: ${alim.codice}
+                        </div>
+                        <div class="product-subtitle">Alimentatore switching per LED</div>
+                    </div>
+                    <div class="product-details">
+                        <div class="details-grid">
+                            ${Object.entries(alim).map(([key, value]) => `
+                                <div class="detail-item">
+                                    <div class="detail-label">${key}</div>
+                                    <div class="detail-value">${value}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                `;
 
-    // --- GESTIONE ALIMENTATORE ---
-    if (data.tipo === 'alimentatore' && data.alimentatore) {
-      const alim = data.alimentatore;
-      html += `<h2>Alimentatore: ${alim.codice}</h2>`;
-      html += `<pre>${JSON.stringify(alim, null, 2)}</pre>`;
+                // Strip compatibili con dettagli specifici per alimentatori
+                if (data.strip_compatibili && data.strip_compatibili.length > 0) {
+                    html += `
+                    <div class="compatibility-sections">
+                        <div class="compatibility-section">
+                            <div class="section-header alimentatori">
+                                <div class="section-title">
+                                    💡 Strip Compatibili
+                                    <span class="item-count">${data.strip_compatibili.length}</span>
+                                </div>
+                            </div>
+                            <div class="compatibility-list">
+                                ${data.strip_compatibili.map(strip => `
+                                    <div class="compatibility-item">
+                                        <div class="item-header">
+                                            <div class="item-code">${strip.Codice}</div>
+                                            <button class="expand-btn" onclick="toggleDetails(this)">
+                                                <span>▼</span>
+                                            </button>
+                                        </div>
+                                        <div class="item-details">
+                                            <span><strong>Max metri supportati:</strong> ${strip.metri_max_supportati}m</span>
+                                            <span><strong>Corrente per metro:</strong> ${strip.ampere_per_metro} A/m</span>
+                                            <div class="extended-details" style="display: none;">
+                                                <span><strong>Potenza totale supportata:</strong> ${(strip.metri_max_supportati * strip.ampere_per_metro * (alim.tensione_uscita || 24)).toFixed(2)}W</span>
+                                                <span><strong>Utilizzo ottimale:</strong> Fino a ${(strip.metri_max_supportati * 0.8).toFixed(1)}m per massima efficienza</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }
+            }
 
-      html += `<h3>Strip compatibili</h3><ul>`;
-      data.strip_compatibili.forEach(s => {
-        html += `<li>${s.Codice} – max ${s.metri_max_supportati} m (${s.ampere_per_metro} A/m)</li>`;
-      });
-      html += `</ul>`;
-    }
+            return html;
+        }
 
-    // --- DEBUG ---
-    if (data.debug) {
-      html += `<hr><h3>Debug</h3><pre>${JSON.stringify(data.debug, null, 2)}</pre>`;
-    }
+        function generateCompatibilitySection(title, items, type, icon) {
+            if (!items || items.length === 0) {
+                return `
+                <div class="compatibility-sections">
+                    <div class="compatibility-section">
+                        <div class="section-header ${type}">
+                            <div class="section-title">
+                                ${icon} ${title}
+                                <span class="item-count">0</span>
+                            </div>
+                        </div>
+                        <div class="no-results">
+                            Nessun prodotto compatibile trovato
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
 
-    document.getElementById("results").innerHTML = html;
+            return `
+            <div class="compatibility-sections">
+                <div class="compatibility-section">
+                    <div class="section-header ${type}">
+                        <div class="section-title">
+                            ${icon} ${title}
+                            <span class="item-count">${items.length}</span>
+                        </div>
+                    </div>
+                    <div class="compatibility-list">
+                        ${items.map(item => `
+                            <div class="compatibility-item">
+                                <div class="item-header">
+                                    <div class="item-code">${item.Codice || item.codice}</div>
+                                    <button class="expand-btn" onclick="toggleDetails(this)">
+                                        <span>▼</span>
+                                    </button>
+                                </div>
+                                <div class="item-details">
+                                    ${generateItemDetails(item, type)}
+                                    <div class="extended-details" style="display: none;">
+                                        ${generateExtendedDetails(item, type)}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            `;
+        }
 
-  }
+        function generateItemDetails(item, type) {
+            const details = [];
+            
+            // Dettagli base comuni
+            if (item.Descrizione || item.descrizione) {
+                details.push(`<span><strong>Descrizione:</strong> ${item.Descrizione || item.descrizione}</span>`);
+            }
+            
+            // Dettagli specifici per tipo
+            switch (type) {
+                case 'profili':
+                    if (item.Lunghezza) details.push(`<span><strong>Lunghezza:</strong> ${item.Lunghezza}</span>`);
+                    if (item.Materiale) details.push(`<span><strong>Materiale:</strong> ${item.Materiale}</span>`);
+                    if (item.Finitura) details.push(`<span><strong>Finitura:</strong> ${item.Finitura}</span>`);
+                    break;
+                case 'dimmer':
+                    if (item.Potenza) details.push(`<span><strong>Potenza:</strong> ${item.Potenza}</span>`);
+                    if (item.Tensione) details.push(`<span><strong>Tensione:</strong> ${item.Tensione}</span>`);
+                    if (item.Tipo) details.push(`<span><strong>Tipo:</strong> ${item.Tipo}</span>`);
+                    break;
+                case 'strip':
+                    if (item.Potenza) details.push(`<span><strong>Potenza:</strong> ${item.Potenza}</span>`);
+                    if (item['Input Volt']) details.push(`<span><strong>Tensione:</strong> ${item['Input Volt']}</span>`);
+                    if (item.Colore) details.push(`<span><strong>Colore:</strong> ${item.Colore}</span>`);
+                    break;
+                case 'alimentatori':
+                    if (item.potenza_uscita) details.push(`<span><strong>Potenza:</strong> ${item.potenza_uscita}W</span>`);
+                    if (item.tensione_uscita) details.push(`<span><strong>Tensione:</strong> ${item.tensione_uscita}V</span>`);
+                    if (item.corrente_uscita) details.push(`<span><strong>Corrente:</strong> ${item.corrente_uscita}A</span>`);
+                    break;
+            }
 
-  function calcolaAlimentatori(wattMetro, volt) {
-    const metri = parseFloat(document.getElementById("metri_input").value);
-    if (isNaN(metri) || metri <= 0) {
-      document.getElementById("risultati_alimentatori").innerHTML = `<p style="color:red;">Inserisci un valore valido di metri</p>`;
-      return;
-    }
+            return details.join('');
+        }
 
-    const potenzaTot = wattMetro * metri;
-    const correnteTot = potenzaTot / volt;
+        function generateExtendedDetails(item, type) {
+            const details = [];
+            
+            // Aggiungi tutti i dettagli rimanenti che non sono stati già mostrati
+            const excludeKeys = ['Codice', 'codice', 'Descrizione', 'descrizione', 'Lunghezza', 'Materiale', 'Finitura', 'Potenza', 'Tensione', 'Tipo', 'Input Volt', 'Colore', 'potenza_uscita', 'tensione_uscita', 'corrente_uscita'];
+            
+            Object.entries(item).forEach(([key, value]) => {
+                if (!excludeKeys.includes(key) && value) {
+                    details.push(`<span><strong>${key}:</strong> ${value}</span>`);
+                }
+            });
 
-    document.getElementById("risultati_alimentatori").innerHTML = `
-      <p>Potenza totale: <strong>${potenzaTot.toFixed(2)} W</strong></p>
-      <p>Corrente totale: <strong>${correnteTot.toFixed(2)} A</strong></p>
-      <p><em>Ora cerca un alimentatore con tensione ${volt}V e almeno ${correnteTot.toFixed(2)}A di uscita</em></p>
-    `;
-  }
-</script>
+            return details.join('');
+        }
+
+        function toggleDetails(button) {
+            const item = button.closest('.compatibility-item');
+            const extendedDetails = item.querySelector('.extended-details');
+            const icon = button.querySelector('span');
+            
+            if (extendedDetails.style.display === 'none') {
+                extendedDetails.style.display = 'block';
+                icon.textContent = '▲';
+                item.style.background = 'linear-gradient(135deg, #f0f8ff 0%, #ffffff 100%)';
+            } else {
+                extendedDetails.style.display = 'none';
+                icon.textContent = '▼';
+                item.style.background = '';
+            }
+        }
+
+        function calcolaAlimentatori(wattMetro, volt) {
+            const metri = parseFloat(document.getElementById("metri_input").value);
+            const resultsDiv = document.getElementById("risultati_alimentatori");
+            
+            if (isNaN(metri) || metri <= 0) {
+                resultsDiv.innerHTML = `
+                    <div class="result-item" style="color: #e74c3c;">
+                        <span>❌ Inserisci un valore valido di metri</span>
+                    </div>
+                `;
+                resultsDiv.classList.remove('hidden');
+                return;
+            }
+
+            const potenzaTot = wattMetro * metri;
+            const correnteTot = potenzaTot / volt;
+            const potenzaConsigliata = potenzaTot * 1.2; // 20% di margine
+
+            resultsDiv.innerHTML = `
+                <div class="result-item">
+                    <span>💡 Potenza totale richiesta:</span>
+                    <span class="result-value">${potenzaTot.toFixed(2)} W</span>
+                </div>
+                <div class="result-item">
+                    <span>⚡ Corrente totale:</span>
+                    <span class="result-value">${correnteTot.toFixed(2)} A</span>
+                </div>
+                <div class="result-item">
+                    <span>🔋 Potenza alimentatore consigliata:</span>
+                    <span class="result-value">${potenzaConsigliata.toFixed(2)} W</span>
+                </div>
+                <div class="result-item" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <span style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">
+                        💡 Cerca un alimentatore con tensione ${volt}V e almeno ${potenzaConsigliata.toFixed(0)}W di potenza
+                    </span>
+                </div>
+            `;
+            
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Mostra/nascondi il pulsante scroll to top
+        window.addEventListener('scroll', function() {
+            const scrollBtn = document.querySelector('.scroll-to-top');
+            if (window.pageYOffset > 300) {
+                scrollBtn.style.display = 'flex';
+            } else {
+                scrollBtn.style.display = 'none';
+            }
+        });
+
+        // Aggiungi effetto di focus automatico al campo di ricerca
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('codice').focus();
+        });
+
+        // Aggiungi effetto di animazione ai risultati
+        function animateResults() {
+            const cards = document.querySelectorAll('.product-card, .compatibility-section');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+
+        // Chiama l'animazione dopo aver mostrato i risultati
+        const originalCercaCodice = cercaCodice;
+        cercaCodice = async function() {
+            await originalCercaCodice();
+            setTimeout(animateResults, 100);
+        };
+    </script>
+</body>
+</html>
