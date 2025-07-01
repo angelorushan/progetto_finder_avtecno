@@ -241,7 +241,7 @@ def estrai_range_voltaggio_dimmer(valore):
         print(f"  → Valore singolo: {single_v}")  # Debug
         return single_v, single_v
     
-    print(f"  → Nessun valore trovato")  # Debug
+    print("  → Nessun valore trovato")  # Debug
     return None, None
 
 def estrai_larghezza_strip(dimensioni):
@@ -267,8 +267,7 @@ def prepara_dettagli_profilo(profilo):
     # Lista dei campi che vogliamo mostrare (escludendo 'Codice' che è già mostrato)
     campi_da_mostrare = [
         'Descrizione', 'Larghezza Max Strip', 'Altezza', 'Lunghezza', 
-        'Materiale', 'Finitura', 'Tipo Installazione', 'Accessori Inclusi',
-        'Peso', 'Colore', 'Grado IP', 'Temperatura Esercizio', 'Note'
+     'Accessori Inclusi','Peso', 'Colore', 'Grado IP'
     ]
     
     for campo in campi_da_mostrare:
@@ -722,31 +721,6 @@ def get_prodotto(codice):
             "error": "Errore interno del server",
             "details": str(e) if app.debug else None
         }), 500
-
-
-# Funzioni di utilità (da implementare se non esistenti)
-def estrai_potenza_strip(potenza_str):
-    """
-    Estrae il valore di potenza da una stringa.
-    
-    Args:
-        potenza_str: Stringa contenente la potenza (es. "14.4W/m")
-    
-    Returns:
-        float o None: Valore della potenza per metro
-    """
-    if not potenza_str:
-        return None
-    
-    try:
-        # Rimuove "W/m" e altri caratteri non numerici tranne punto e virgola
-        numero = re.search(r'(\d+\.?\d*)', str(potenza_str))
-        if numero:
-            return float(numero.group(1))
-    except (ValueError, AttributeError):
-        pass
-    
-    return None
 
 
 def estrai_voltaggio_strip(voltaggio_str):
