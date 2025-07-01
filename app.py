@@ -746,6 +746,8 @@ def estrai_voltaggio_strip(voltaggio_str):
     
     return None
 if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
     app = Flask(__name__)
     app.config['DEBUG'] = True
+    
 
