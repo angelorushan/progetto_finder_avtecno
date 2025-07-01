@@ -241,7 +241,7 @@ def estrai_range_voltaggio_dimmer(valore):
         print(f"  → Valore singolo: {single_v}")  # Debug
         return single_v, single_v
     
-    print(f"  → Nessun valore trovato")  # Debug
+    print("  → Nessun valore trovato")  # Debug
     return None, None
 
 def estrai_larghezza_strip(dimensioni):
