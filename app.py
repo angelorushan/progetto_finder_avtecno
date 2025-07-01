@@ -546,49 +546,262 @@ def cerca():
             }
         })
 
-    # --- RICERCA ALIMENTATORE (NUOVO) ---
-    alimentatore = next((a for a in alimentatori_data if a.get('codice', '').strip().upper() == codice), None)
-    if alimentatore:
-        print(f"✅ Alimentatore trovato: {alimentatore['codice']}")
+# --- RICERCA ALIMENTATORE (COMPLETA) ---
+
+def calcola_compatibilita_strip(strip, corrente_alimentatore):
+    """
+    Calcola la compatibilità di una strip LED con un alimentatore.
+    
+    Args:
+        strip: Dizionario con i dati della strip
+        corrente_alimentatore: Corrente massima dell'alimentatore in Ampere
+    
+    Returns:
+        dict o None: Informazioni sulla strip con compatibilità calcolata
+    """
+    if not strip.get('Codice'):
+        return None
         
-        corrente_alimentatore = alimentatore.get('corrente_A')
-        if corrente_alimentatore is None:
-            return jsonify({"error": "Corrente alimentatore non trovata"}), 404
+    potenza_per_metro = estrai_potenza_strip(strip.get('Potenza', ''))
+    voltaggio_strip = estrai_voltaggio_strip(strip.get('Input Volt', ''))
+    
+    if potenza_per_metro is None or voltaggio_strip is None:
+        return None
+    
+    # Evita divisione per zero
+    if voltaggio_strip == 0:
+        return None
+    
+    # Calcola ampere per metro e metri massimi supportabili
+    ampere_per_metro = potenza_per_metro / voltaggio_strip
+    
+    # Margine di sicurezza del 20% (fattore 1.2)
+    MARGINE_SICUREZZA = 1.2
+    metri_max = corrente_alimentatore / (ampere_per_metro * MARGINE_SICUREZZA)
+    
+    # Considera compatibile solo se supporta almeno 10cm
+    LUNGHEZZA_MINIMA = 0.1  # 10cm
+    if metri_max < LUNGHEZZA_MINIMA:
+        return None
+    
+    # Prepara le informazioni della strip compatibile
+    strip_info = strip.copy()
+    strip_info.update({
+        'metri_max_supportati': round(metri_max, 2),
+        'ampere_per_metro': round(ampere_per_metro, 3),
+        'potenza_per_metro': round(potenza_per_metro, 2),
+        'voltaggio': voltaggio_strip
+    })
+    
+    return strip_info
 
-        # Trova strip compatibili (solo quelle a corrente costante)
-        strip_compatibili = []
-        for s in strip_data:
-            if not s.get('Codice'):
-                continue
-            
-            potenza_per_metro = estrai_potenza_strip(s.get('Potenza', ''))
-            voltaggio_strip = estrai_voltaggio_strip(s.get('Input Volt', ''))
-            
-            if potenza_per_metro is None or voltaggio_strip is None:
-                continue
-            
-            # Calcola metri massimi supportabili
-            ampere_per_metro = potenza_per_metro / voltaggio_strip
-            metri_max = corrente_alimentatore / (ampere_per_metro * 1.2)  # Con margine sicurezza
-            
-            if metri_max >= 0.1:  # Almeno 10cm
-                strip_info = s.copy()
-                strip_info['metri_max_supportati'] = round(metri_max, 2)
-                strip_info['ampere_per_metro'] = round(ampere_per_metro, 3)
-                strip_compatibili.append(strip_info)
 
+def trova_strip_compatibili(corrente_alimentatore, strip_data):
+    """
+    Trova tutte le strip LED compatibili con un alimentatore.
+    
+    Args:
+        corrente_alimentatore: Corrente dell'alimentatore in Ampere
+        strip_data: Lista di tutte le strip disponibili
+    
+    Returns:
+        list: Lista delle strip compatibili con informazioni aggiuntive
+    """
+    strip_compatibili = []
+    
+    for strip in strip_data:
+        strip_compatibile = calcola_compatibilita_strip(strip, corrente_alimentatore)
+        if strip_compatibile:
+            strip_compatibili.append(strip_compatibile)
+    
+    # Ordina per metri massimi supportati (decrescente)
+    strip_compatibili.sort(key=lambda x: x['metri_max_supportati'], reverse=True)
+    
+    return strip_compatibili
+
+
+def ricerca_alimentatore(codice, alimentatori_data, strip_data):
+    """
+    Funzione principale per la ricerca di un alimentatore e strip compatibili.
+    
+    Args:
+        codice: Codice dell'alimentatore da cercare
+        alimentatori_data: Lista di tutti gli alimentatori disponibili
+        strip_data: Lista di tutte le strip disponibili
+    
+    Returns:
+        tuple: (response_data, status_code)
+    """
+    # Cerca alimentatore per codice
+    alimentatore = next(
+        (a for a in alimentatori_data if a.get('codice', '').strip().upper() == codice.upper()), 
+        None
+    )
+    
+    if not alimentatore:
+        console.log(f"❌ Nessun alimentatore trovato per il codice: {codice}")
+        return {
+            "error": "Alimentatore non trovato",
+            "codice": codice
+        }, 404
+    
+    # Verifica corrente alimentatore
+    corrente_alimentatore = alimentatore.get('corrente_A')
+    
+    if corrente_alimentatore is None:
+        return {
+            "error": "Corrente alimentatore non trovata",
+            "codice": codice
+        }, 404
+    
+    # Validazione corrente
+    if corrente_alimentatore <= 0:
+        return {
+            "error": "Corrente alimentatore non valida",
+            "corrente": corrente_alimentatore,
+            "codice": codice
+        }, 400
+    
+    # Trova strip compatibili
+    strip_compatibili = trova_strip_compatibili(corrente_alimentatore, strip_data)
+    
+    # Prepara la risposta
+    risposta = {
+        "tipo": "alimentatore",
+        "alimentatore": {
+            "codice": alimentatore.get("codice", ""),
+            "potenza_uscita": alimentatore.get("potenza_W", 0),
+            "tensione_uscita": alimentatore.get("tensione_V", 0),
+            "corrente_uscita": alimentatore.get("corrente_A", 0),
+            "descrizione": alimentatore.get("nome", ""),
+            "tipo_corrente": alimentatore.get("tipo_corrente", "")
+        },
+        "strip_compatibili": strip_compatibili,
+        "statistiche": {
+            "num_strip_compatibili": len(strip_compatibili),
+            "metri_max_globale": max(
+                [s['metri_max_supportati'] for s in strip_compatibili], 
+                default=0
+            ),
+            "corrente_alimentatore": corrente_alimentatore
+        }
+    }
+    
+    # Log di successo
+    console.log(f"✅ Alimentatore trovato: {codice} - {len(strip_compatibili)} strip compatibili")
+    
+    return risposta, 200
+
+
+# Esempio di utilizzo nell'endpoint Flask
+@app.route('/api/prodotto/<codice>', methods=['GET'])
+def get_prodotto(codice):
+    """
+    Endpoint per la ricerca di prodotti (alimentatori e strip LED).
+    """
+    try:
+        # Normalizza il codice
+        codice = codice.strip().upper()
+        
+        if not codice:
+            return jsonify({"error": "Codice prodotto non fornito"}), 400
+        
+        # Cerca prima negli alimentatori
+        response_data, status_code = ricerca_alimentatore(codice, alimentatori_data, strip_data)
+        
+        if status_code == 200:
+            return jsonify(response_data), status_code
+        
+        # Se non è un alimentatore, qui potresti aggiungere la ricerca per altri tipi di prodotti
+        # Per esempio: ricerca_strip(codice, strip_data)
+        
+        # Se nessun prodotto trovato
         return jsonify({
-            "tipo": "alimentatore",
-            "alimentatore": alimentatore,
-            "strip_compatibili": strip_compatibili,
-            "debug": {
-                "corrente_alimentatore": corrente_alimentatore,
-                "num_strip_compatibili": len(strip_compatibili)
-            }
-        })
+            "error": "Nessun prodotto trovato",
+            "codice": codice
+        }), 404
+        
+    except Exception as e:
+        console.log(f"❌ Errore interno: {str(e)}")
+        return jsonify({
+            "error": "Errore interno del server",
+            "details": str(e) if app.debug else None
+        }), 500
 
-    print(f"❌ Codice '{codice}' non trovato in nessuna categoria")
-    return jsonify({"error": "Codice non trovato"}), 404
+
+# Funzioni di utilità (da implementare se non esistenti)
+def estrai_potenza_strip(potenza_str):
+    """
+    Estrae il valore di potenza da una stringa.
+    
+    Args:
+        potenza_str: Stringa contenente la potenza (es. "14.4W/m")
+    
+    Returns:
+        float o None: Valore della potenza per metro
+    """
+    if not potenza_str:
+        return None
+    
+    try:
+        # Rimuove "W/m" e altri caratteri non numerici tranne punto e virgola
+        import re
+        numero = re.search(r'(\d+\.?\d*)', str(potenza_str))
+        if numero:
+            return float(numero.group(1))
+    except (ValueError, AttributeError):
+        pass
+    
+    return None
+
+
+def estrai_voltaggio_strip(voltaggio_str):
+    """
+    Estrae il valore di voltaggio da una stringa.
+    
+    Args:
+        voltaggio_str: Stringa contenente il voltaggio (es. "12V", "24V DC")
+    
+    Returns:
+        float o None: Valore del voltaggio
+    """
+    if not voltaggio_str:
+        return None
+    
+    try:
+        # Rimuove "V", "DC", "AC" e altri caratteri non numerici
+        import re
+        numero = re.search(r'(\d+\.?\d*)', str(voltaggio_str))
+        if numero:
+            return float(numero.group(1))
+    except (ValueError, AttributeError):
+        pass
+    
+    return None
+
+
+# Simulazione della funzione console.log
+def console_log(message):
+    """
+    Funzione per logging compatibile con Flask.
+    """
+    import logging
+    logging.info(message)
+    print(message)  # Per debug locale
+
+
+# Alias per compatibilità
+console = type('Console', (), {'log': console_log})()
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Configurazione Flask di base
+    from flask import Flask, jsonify, request
+    
+    app = Flask(__name__)
+    app.config['DEBUG'] = True
+    
+    # Dati di esempio (sostituire con i tuoi dati reali)
+
+    
+    app.run(debug=True, host='0.0.0.0', port=5000)
