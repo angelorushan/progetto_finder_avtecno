@@ -2,8 +2,14 @@ import re
 from flask import Flask, jsonify, render_template, request
 import json
 from flask_cors import CORS
-
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
 app = Flask(__name__)
+
+# Accesso a Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("credential.json", scope)
+client = gspread.authorize(creds)
 CORS(app)
 
 def estrai_numero_canali(valore):
@@ -179,15 +185,35 @@ def profilo_colore_strip(item):
         return "CCT"
     else:
         return "MONO"
+def get_sheet_data(sheet_name):
+    """Legge i dati da un foglio specifico di Google Sheets"""
+    try:
+        sheet = client.open("NOME_TUO_FOGLIO_GOOGLE_SHEETS").worksheet(sheet_name)
+        records = sheet.get_all_records()
+        return records
+    except Exception as e:
+        print(f"Errore nel leggere il foglio {sheet_name}: {str(e)}")
+        return []
 
-# Carica i dati dal file JSON locale
-with open("dati_prodotti.json", "r", encoding="utf-8") as f:
-    all_data = json.load(f)
+def load_all_data():
+    """Carica tutti i dati dai fogli Google Sheets"""
+    return {
+        "stripled": get_sheet_data("Strips"),
+        "profili": get_sheet_data("Profiles"),
+        "Dimmer": get_sheet_data("Dimmer"),
+        "alimentatori": get_sheet_data("PowerSupplies")
+    }
 
-strip_data = all_data.get("stripled", [])
-profili_data = all_data.get("profili", [])
-dimmer_data = all_data.get("Dimmer", [])
-alimentatori_data = all_data.get("alimentatori", [])  # NUOVO: dati alimentatori
+# Carica i dati all'avvio
+all_data = load_all_data()
+
+# Dati caricati direttamente da Google Sheets
+strip_data = all_data["stripled"]
+profili_data = all_data["profili"]
+dimmer_data = all_data["Dimmer"]
+alimentatori_data = all_data["alimentatori"]
+
+
 
 # Funzioni di utilità migliorate
 def pulisci_voltaggio(valore):
@@ -266,10 +292,9 @@ def prepara_dettagli_profilo(profilo):
     
     # Lista dei campi che vogliamo mostrare (escludendo 'Codice' che è già mostrato)
     campi_da_mostrare = [
-        'Descrizione', 'Larghezza Max Strip', 'Altezza', 'Lunghezza', 
-     'Accessori Inclusi','Peso', 'Colore', 'Grado IP'
+    'Codice', 'Dimensioni', 'Dissipazione Max', 'Larghezza Max Strip',
+    'Materiale/Finitura', 'Cover', 'Tappi', 'Ganci'
     ]
-    
     for campo in campi_da_mostrare:
         valore = profilo.get(campo, '')
         if valore and str(valore).strip() and str(valore).strip().lower() not in ['', 'n/a', 'na', '-']:
@@ -385,7 +410,6 @@ def cerca():
             larghezza_profilo = profilo_larghezze.get(p['Codice'].strip().upper())
             if larghezza_profilo is not None and larghezza_profilo >= larghezza_strip:
                 profilo_con_dettagli = p.copy()
-                profilo_con_dettagli['dettagli_completi'] = prepara_dettagli_profilo(p)
                 profili_compatibili.append(profilo_con_dettagli)
 
         # LOGICA DIMMER: basata su temperatura colore
@@ -747,7 +771,6 @@ def estrai_voltaggio_strip(voltaggio_str):
     return None
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-    app = Flask(__name__)
     app.config['DEBUG'] = True
     
 
