@@ -762,6 +762,8 @@
             <h1>🔍 Avtecno Product Finder</h1>
             <p>Trova la compatibilità perfetta per i tuoi prodotti LED</p>
         </div>
+<input type="number" id="lunghezzaInput" placeholder="Inserisci lunghezza in metri" />
+<button onclick="filtraAlimentatore()">Cerca alimentatori</button>
 
 <div class="search-section">
     <div class="search-container">
@@ -1065,13 +1067,14 @@
             switch (type) {
                 case 'profili':
                     if (item.Lunghezza) details.push(`<span><strong>Lunghezza:</strong> ${item.Lunghezza}</span>`);
-                    if (item.Materiale) details.push(`<span><strong>Materiale:</strong> ${item.Materiale}</span>`);
-                    if (item.Finitura) details.push(`<span><strong>Finitura:</strong> ${item.Finitura}</span>`);
+                    if (item.IP) details.push(`<span><strong>IP:</strong> ${item.IP}</span>`);
+                    if (item.Dissipazione_Max) details.push(`<span><strong>Dissipazione Max:</strong> ${item.Dissipazione_Max}</span>`);
                     break;
                 case 'dimmer':
                     if (item.Potenza) details.push(`<span><strong>Potenza:</strong> ${item.Potenza}</span>`);
                     if (item.Tensione) details.push(`<span><strong>Tensione:</strong> ${item.Tensione}</span>`);
-                    if (item.Tipo) details.push(`<span><strong>Tipo:</strong> ${item.Tipo}</span>`);
+                    if (item.Canali_Dimmer) details.push(`<span><strong>Canali Dimmer:</strong> ${item.Canali_Dimmer}</span>`);
+
                     break;
                 case 'strip':
                     if (item.Potenza) details.push(`<span><strong>Potenza:</strong> ${item.Potenza}</span>`);
@@ -1092,7 +1095,7 @@
             const details = [];
             
             // Aggiungi tutti i dettagli rimanenti che non sono stati già mostrati
-            const excludeKeys = ['Codice', 'codice', 'Descrizione', 'descrizione', 'Lunghezza', 'Materiale', 'Finitura', 'Potenza', 'Tensione', 'Tipo', 'Input Volt', 'Colore', 'potenza_uscita', 'tensione_uscita', 'corrente_uscita'];
+            const excludeKeys = ['Codice', 'codice', 'Descrizione', 'Finitura', 'Potenza', 'Tensione', 'Tipo', 'Input Volt', 'Colore', 'potenza_uscita', 'tensione_uscita', 'corrente_uscita'];
             
             Object.entries(item).forEach(([key, value]) => {
                 if (!excludeKeys.includes(key) && value) {
@@ -1118,48 +1121,6 @@
                 item.style.background = '';
             }
         }
-
-        function calcolaAlimentatori(wattMetro, volt) {
-            const metri = parseFloat(document.getElementById("metri_input").value);
-            const resultsDiv = document.getElementById("risultati_alimentatori");
-            
-            if (isNaN(metri) || metri <= 0) {
-                resultsDiv.innerHTML = `
-                    <div class="result-item" style="color: #e74c3c;">
-                        <span>❌ Inserisci un valore valido di metri</span>
-                    </div>
-                `;
-                resultsDiv.classList.remove('hidden');
-                return;
-            }
-
-            const potenzaTot = wattMetro * metri;
-            const correnteTot = potenzaTot / volt;
-            const potenzaConsigliata = potenzaTot * 1.2; // 20% di margine
-
-            resultsDiv.innerHTML = `
-                <div class="result-item">
-                    <span>💡 Potenza totale richiesta:</span>
-                    <span class="result-value">${potenzaTot.toFixed(2)} W</span>
-                </div>
-                <div class="result-item">
-                    <span>⚡ Corrente totale:</span>
-                    <span class="result-value">${correnteTot.toFixed(2)} A</span>
-                </div>
-                <div class="result-item">
-                    <span>🔋 Potenza alimentatore consigliata:</span>
-                    <span class="result-value">${potenzaConsigliata.toFixed(2)} W</span>
-                </div>
-                <div class="result-item" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
-                    <span style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">
-                        💡 Cerca un alimentatore con tensione ${volt}V e almeno ${potenzaConsigliata.toFixed(0)}W di potenza
-                    </span>
-                </div>
-            `;
-            
-            resultsDiv.classList.remove('hidden');
-        }
-
         function scrollToTop() {
             window.scrollTo({
                 top: 0,
@@ -1195,6 +1156,48 @@
                 }, index * 100);
             });
         }
+
+function filtraAlimentatore(data) {
+    if (!data || !data.strip) {
+        alert("Dati della strip non disponibili. Seleziona prima una strip LED valida.");
+        return;
+    }
+
+    const lunghezza = parseFloat(document.getElementById("lunghezzaInput").value);
+    if (isNaN(lunghezza) || lunghezza <= 0) {
+        alert("Inserisci una lunghezza valida.");
+        return;
+    }
+
+    const correnteNecessaria = data.strip.ampere_per_metro * lunghezza;
+
+    const alimentatori = data.alimentatori;
+    if (!alimentatori || alimentatori.length === 0) {
+        console.warn("Nessun alimentatore caricato");
+        return;
+    }
+
+    const alimentatoriCompatibili = alimentatori.filter(alim => {
+        return alim.correnteA >= correnteNecessaria + 0.2;
+    });
+
+    const ul = document.getElementById("risultatoAlimentatori");
+    ul.innerHTML = "";
+
+    if (alimentatoriCompatibili.length === 0) {
+        ul.innerHTML = "<li>Nessun alimentatore compatibile trovato.</li>";
+        return;
+    }
+
+    alimentatoriCompatibili.forEach(alim => {
+        const li = document.createElement("li");
+        li.textContent = `${alim.nome} - Corrente: ${alim.correnteA}A`;
+        ul.appendChild(li);
+        console.log(`${alim.nome} - Corrente: ${alim.correnteA}A`);
+    });
+}
+
+
 
         // Chiama l'animazione dopo aver mostrato i risultati
         const originalCercaCodice = cercaCodice;
