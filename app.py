@@ -110,11 +110,52 @@ def estrai_voltaggio_strip(voltaggio_str):
     
     return None
 
-def calcola_ampere_necessari(strip, metri):
-    """Calcola gli ampere necessari per una strip in base ai metri"""
+# Aggiungi queste funzioni corrette al tuo app.py
+
+def estrai_ampere_per_metro(strip):
+    """Estrae gli ampere per metro dalla colonna specifica"""
+    if not strip:
+        return None
+    
+    # Cerca nella colonna "ampere per metro"
+    ampere_str = strip.get('ampere per metro', '')
+    if not ampere_str:
+        return None
+    
+    # Pattern per trovare ampere per metro
+    match = re.search(r'(\d+(?:[.,]\d+)?)', str(ampere_str))
+    if match:
+        return float(match.group(1).replace(',', '.'))
+    
+    return None
+
+def estrai_corrente_alimentatore(alimentatore):
+    """Estrae la corrente dall'alimentatore dalla colonna 'Corrente A'"""
+    if not alimentatore:
+        return None
+    
+    corrente_str = alimentatore.get('Corrente A', '')
+    if not corrente_str:
+        return None
+    
+    # Pattern per trovare corrente in ampere
+    match = re.search(r'(\d+(?:[.,]\d+)?)', str(corrente_str))
+    if match:
+        return float(match.group(1).replace(',', '.'))
+    
+    return None
+
+def calcola_ampere_necessari_v2(strip, metri):
+    """Versione corretta del calcolo ampere usando i dati reali"""
     if not strip or not metri or metri <= 0:
         return None
     
+    # Usa la colonna "ampere per metro" se disponibile
+    ampere_per_metro = estrai_ampere_per_metro(strip)
+    if ampere_per_metro is not None:
+        return ampere_per_metro * metri
+    
+    # Fallback al calcolo originale se non disponibile
     potenza_per_metro = estrai_potenza_strip(strip.get('Potenza', ''))
     voltaggio = estrai_voltaggio_strip(strip.get('Input Volt', ''))
     
@@ -127,8 +168,8 @@ def calcola_ampere_necessari(strip, metri):
     
     return round(ampere_necessari, 3)
 
-def trova_alimentatori_compatibili(ampere_necessari, alimentatori_data, margine_sicurezza=1.2):
-    """Trova alimentatori compatibili con margine di sicurezza"""
+def trova_alimentatori_compatibili_v2(ampere_necessari, alimentatori_data, margine_sicurezza=1.2):
+    """Versione corretta per trovare alimentatori compatibili"""
     if ampere_necessari is None:
         return []
     
@@ -136,17 +177,59 @@ def trova_alimentatori_compatibili(ampere_necessari, alimentatori_data, margine_
     ampere_minimi = ampere_necessari * margine_sicurezza
     
     for alimentatore in alimentatori_data:
-        corrente_alimentatore = alimentatore.get('corrente_A')
+        # Usa la colonna corretta "Corrente A"
+        corrente_alimentatore = estrai_corrente_alimentatore(alimentatore)
+        
         if corrente_alimentatore is not None and corrente_alimentatore >= ampere_minimi:
             # Aggiungi informazioni di compatibilità
             alimentatore_info = alimentatore.copy()
+            alimentatore_info['corrente_A'] = corrente_alimentatore
             alimentatore_info['margine_utilizzazione'] = round((ampere_necessari / corrente_alimentatore) * 100, 1)
+            alimentatore_info['ampere_disponibili'] = corrente_alimentatore
+            alimentatore_info['ampere_necessari'] = ampere_necessari
             alimentatori_compatibili.append(alimentatore_info)
     
     # Ordina per corrente crescente (più efficiente)
     alimentatori_compatibili.sort(key=lambda x: x.get('corrente_A', 0))
     
     return alimentatori_compatibili
+
+# Modifica la route /calcola_alimentatori
+@app.route("/calcola_alimentatori")
+def cerca_alimentatori_section(corrente_alimentatore):
+    """Sezione specifica per la ricerca alimentatori"""
+    strip_compatibili = []
+    MARGINE_SICUREZZA = 1.2
+    
+    for s in strip_data:
+        if not s.get('Codice'):
+            continue
+        
+        # Usa prima "ampere per metro" se disponibile
+        ampere_per_metro = estrai_ampere_per_metro(s)
+        if ampere_per_metro is not None:
+            metri_max = corrente_alimentatore / (ampere_per_metro * MARGINE_SICUREZZA)
+        else:
+            # Fallback al calcolo originale
+            potenza_per_metro = estrai_potenza_strip(s.get('Potenza', ''))
+            voltaggio_strip = estrai_voltaggio_strip(s.get('Input Volt', ''))
+            
+            if potenza_per_metro is None or voltaggio_strip is None or voltaggio_strip == 0:
+                continue
+            
+            ampere_per_metro = potenza_per_metro / voltaggio_strip
+            metri_max = corrente_alimentatore / (ampere_per_metro * MARGINE_SICUREZZA)
+        
+        if metri_max >= 0.1:  # Supporta almeno 10cm
+            strip_info = s.copy()
+            strip_info.update({
+                'metri_max_supportati': round(metri_max, 2),
+                'ampere_per_metro': round(ampere_per_metro, 3),
+                'metodo_calcolo': 'ampere_per_metro' if estrai_ampere_per_metro(s) else 'potenza_voltaggio'
+            })
+            strip_compatibili.append(strip_info)
+    
+    return strip_compatibili
 
 def profilo_colore_strip(item):
     """Determina il profilo colore di una strip o dimmer basandosi sui canali o descrizione"""
@@ -356,7 +439,7 @@ def calcola_alimentatori():
         return jsonify({"error": "Strip non trovata"}), 404
     
     # Calcola ampere necessari
-    ampere_necessari = calcola_ampere_necessari(strip, metri_float)
+    ampere_necessari = calcola_ampere_necessari_v2(strip, metri_float)
     if ampere_necessari is None:
         return jsonify({
             "error": "Impossibile calcolare ampere: dati di potenza o voltaggio mancanti",
@@ -364,7 +447,7 @@ def calcola_alimentatori():
         }), 400
     
     # Trova alimentatori compatibili
-    alimentatori_compatibili = trova_alimentatori_compatibili(ampere_necessari, alimentatori_data)
+    alimentatori_compatibili = trova_alimentatori_compatibili_v2(ampere_necessari, alimentatori_data)
     
     # Informazioni di debug
     potenza_per_metro = estrai_potenza_strip(strip.get('Potenza', ''))
@@ -549,49 +632,54 @@ def cerca():
     alimentatore = next((a for a in alimentatori_data if a.get('codice', '').strip().upper() == codice), None)
     if alimentatore:
         print(f"✅ Alimentatore trovato: {alimentatore.get('codice', '')}")
+    
+    corrente_alimentatore = alimentatore.get('corrente_A') or alimentatore.get('Corrente A')
+    try:
+        corrente_alimentatore = float(str(corrente_alimentatore).replace(',', '.'))
+    except Exception:
+        corrente_alimentatore = None
+
+    if corrente_alimentatore is None or corrente_alimentatore <= 0:
+        return jsonify({"error": "Corrente alimentatore non valida"}), 404
+
+    # Trova strip compatibili
+    strip_compatibili = []
+    MARGINE_SICUREZZA = 1.2
+    
+    for s in strip_data:
+        if not s.get('Codice'):
+            continue
+            
+        potenza_per_metro = estrai_potenza_strip(s.get('Potenza', ''))
+        voltaggio_strip = estrai_voltaggio_strip(s.get('Input Volt', ''))
         
-        corrente_alimentatore = alimentatore.get('corrente_A')
-        if corrente_alimentatore is None or corrente_alimentatore <= 0:
-            return jsonify({"error": "Corrente alimentatore non valida"}), 404
-
-        # Trova strip compatibili
-        strip_compatibili = []
-        MARGINE_SICUREZZA = 1.2
+        if potenza_per_metro is None or voltaggio_strip is None or voltaggio_strip == 0:
+            continue
         
-        for s in strip_data:
-            if not s.get('Codice'):
-                continue
-                
-            potenza_per_metro = estrai_potenza_strip(s.get('Potenza', ''))
-            voltaggio_strip = estrai_voltaggio_strip(s.get('Input Volt', ''))
-            
-            if potenza_per_metro is None or voltaggio_strip is None or voltaggio_strip == 0:
-                continue
-            
-            ampere_per_metro = potenza_per_metro / voltaggio_strip
-            metri_max = corrente_alimentatore / (ampere_per_metro * MARGINE_SICUREZZA)
-            
-            if metri_max >= 0.1:  # Supporta almeno 10cm
-                strip_info = s.copy()
-                strip_info.update({
-                    'metri_max_supportati': round(metri_max, 2),
-                    'ampere_per_metro': round(ampere_per_metro, 3),
-                    'potenza_per_metro': round(potenza_per_metro, 2),
-                    'voltaggio': voltaggio_strip
-                })
-                strip_compatibili.append(strip_info)
+        ampere_per_metro = potenza_per_metro / voltaggio_strip
+        metri_max = corrente_alimentatore / (ampere_per_metro * MARGINE_SICUREZZA)
+        
+        if metri_max >= 0.1:  # Supporta almeno 10cm
+            strip_info = s.copy()
+            strip_info.update({
+                'metri_max_supportati': round(metri_max, 2),
+                'ampere_per_metro': round(ampere_per_metro, 3),
+                'potenza_per_metro': round(potenza_per_metro, 2),
+                'voltaggio': voltaggio_strip
+            })
+            strip_compatibili.append(strip_info)
 
-        strip_compatibili.sort(key=lambda x: x['metri_max_supportati'], reverse=True)
+    strip_compatibili.sort(key=lambda x: x['metri_max_supportati'], reverse=True)
 
-        return jsonify({
-            "tipo": "alimentatore",
-            "alimentatore": alimentatore,
-            "strip_compatibili": strip_compatibili,
-            "debug": {
-                "corrente_alimentatore": corrente_alimentatore,
-                "num_strip_compatibili": len(strip_compatibili)
-            }
-        })
+    return jsonify({
+        "tipo": "alimentatore",
+        "alimentatore": alimentatore,
+        "strip_compatibili": strip_compatibili,
+        "debug": {
+            "corrente_alimentatore": corrente_alimentatore,
+            "num_strip_compatibili": len(strip_compatibili)
+        }
+    })
 
     return jsonify({"error": "Nessun prodotto trovato"}), 404
 
